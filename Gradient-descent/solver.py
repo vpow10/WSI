@@ -15,11 +15,10 @@ class GradientIndent():
             while abs((gradient(*point))) > epsilon:
                 point = point - self.beta * gradient(point)
                 it += 1
-
         else:
-            while not self.check_slope(problem, epsilon, point):
-                point, more_it = self.slope_direction(problem, epsilon, point)
-                it += more_it
+            # while not self.check_slope(problem, epsilon, point):
+            #     point, more_it = self.slope_direction(problem, epsilon, point)
+            #     it += more_it
             while any(abs(value) > epsilon for value in gradient(*point)):
                 point = point - self.beta * np.array(gradient(*point))
                 it += 1
@@ -29,6 +28,7 @@ class GradientIndent():
             print("Minimum value: ", problem(*point))
             print("Iterations: ", it)
             print("--------------------")
+        return (point, it)
 
     def check_slope(self, problem, epsilon, variables):
         point = np.array(variables)
@@ -42,7 +42,6 @@ class GradientIndent():
         next_point = np.array(start_point + 1)
         it = 0
         dx = np.diff((problem(*start_point), problem(*(next_point))))
-        print(dx)
         if dx >= 0 and problem(*start_point) > 0:
             next_point -= 2
             while abs(np.diff((problem(*next_point), problem(*start_point)))) < epsilon:
