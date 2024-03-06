@@ -1,7 +1,6 @@
 from solver import GradientIndent
 import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 
 
 # functions and gradients
@@ -72,7 +71,7 @@ plt.ylabel('iterations')
 plt.title("Function g beta - iterations relation")
 g_beta_min = round(betas[np.argmin(its)], 3)
 
-# testing for best beta
+# testing best beta
 
 solver = GradientIndent(g_beta_min)
 x0s = []
