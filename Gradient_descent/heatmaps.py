@@ -14,7 +14,7 @@ g = lambda x1, x2: 1 - 0.6*np.exp(- x1**2 - x2**2 ) - 0.4*np.exp( - (x1+1.75)**2
 g_gradient = lambda x1, x2: (1.2*x1*np.exp(- x1**2 - x2**2) + 0.8*(x1 + 1.75)*np.exp(-(x1 + 1.75)**2 - (x2-1)**2),
                               1.2*x2*np.exp(- x1**2 - x2**2) + 0.8*(x2 - 1)*np.exp(-(x1 + 1.75)**2 - (x2-1)**2))
 epsilon = 1e-6
-betas = np.arange(0.02, 0.48, 0.01)
+betas = np.arange(0.02, 0.49, 0.01)
 
 # getting data for heatmap and making a csv file for f function
 

@@ -12,9 +12,12 @@ g_gradient = lambda x1, x2: (1.2*x1*np.exp(- x1**2 - x2**2) + 0.8*(x1 + 1.75)*np
                               1.2*x2*np.exp(- x1**2 - x2**2) + 0.8*(x2 - 1)*np.exp(-(x1 + 1.75)**2 - (x2-1)**2))
 epsilon = 1e-6
 
+
+print(g(0.01, 0.02))
+print(g(-1.69, 0.97))
 # testing f function
 
-betas = np.arange(0.02, 0.48, 0.01)
+betas = np.arange(0.02, 0.49, 0.01)
 its = []
 
 for beta in betas:
@@ -77,7 +80,7 @@ solver = GradientIndent(g_beta_min)
 x0s = []
 mins = []
 its = []
-for x in np.random.uniform(-5, 5, (50, 2)):
+for x in np.random.uniform(-5, 5, (100, 2)):
     x0s.append(x)
     minim, it = solver.solver(g, g_gradient, epsilon, x[0], x[1], show_data=False)
     mins.append(minim)

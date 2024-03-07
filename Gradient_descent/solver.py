@@ -1,5 +1,5 @@
 import numpy as np
-# lychanl
+
 
 class GradientIndent():
     def __init__(self, beta: int):
