@@ -1,7 +1,6 @@
 from random import random, randint
 import numpy as np
 from copy import deepcopy
-from fitness_function import evaluate
 
 
 def get_random_genotype(size):
@@ -36,13 +35,9 @@ class Individual:
         genotype_2 = parent.get_genotype()
         chance = random()
         if chance <= pc:
-            crossover_point = randint(0, self.size - 1)
+            crossover_point = randint(0, self.size - 2)
             temp = deepcopy(genotype_1)
             genotype_1[crossover_point + 1:] = genotype_2[-self.size + crossover_point + 1:]
             genotype_2[crossover_point + 1:] = temp[-self.size + crossover_point + 1:]
             self.set_genotype(genotype_1)
             parent.set_genotype(genotype_2)
-
-
-a = Individual(get_random_genotype(100))
-print(a.fitness(evaluate))
