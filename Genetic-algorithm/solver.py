@@ -3,6 +3,9 @@ from random import shuffle, choices
 from fitness_function import evaluate
 from individual import Individual, get_random_genotype
 import numpy as np
+from random import random, randint
+from copy import deepcopy
+import matplotlib.pyplot as plt
 
 
 class GeneticAlgorithm(ABC):
@@ -35,53 +38,85 @@ class GeneticAlgorithm(ABC):
         return (best_x, best_f)
 
     def crossover(self, population: list) -> list:
+        # new_pop = []
+        # shuffle(population)
+        # pairs = np.array_split(population, len(population)/2)
+        # for pair in pairs:
+        #     pair[0].crossover(self._pc, pair[1])
+        #     new_pop.append(pair[0])
+        #     new_pop.append(pair[1])
+        # return new_pop
         new_pop = []
-        shuffle(population)
-        pairs = np.array_split(population, len(population)/2)
-        for pair in pairs:
-            pair[0].crossover(self._pc, pair[1])
-            new_pop.append(pair[0])
-            new_pop.append(pair[1])
+        size = len(population)
+        while population:
+            chance = random()
+            first_parent = population.pop(0)
+            second_parent = population.pop(0)
+            if chance <= self._pc:
+                crossover_point = randint(0, size - 1)
+                first_child = np.array(list(first_parent[:crossover_point]) + list(second_parent[crossover_point:]))
+                second_child = np.array(list(second_parent[:crossover_point]) + list(first_parent[crossover_point:]))
+                new_pop.append(first_child)
+                new_pop.append(second_child)
+            else:
+                new_pop.append(first_parent)
+                new_pop.append(second_parent)
         return new_pop
 
     def mutation(self, population: list) -> list:
-        new_pop = []
-        for individual in population:
-            individual.mutate(self._pm)
-            new_pop.append(individual)
-        return new_pop
+        # new_pop = []
+        # for individual in population:
+        #     individual.mutate(self._pm)
+        #     new_pop.append(individual)
+        # return new_pop
+        for x in population:
+            for n in range(len(x)):
+                chance = random()
+                if chance <= self._pm:
+                    x[n] = int(not bool(x[n]))
+        return population
 
-    def selection(self, population: list, fitness_function) -> list:
-        size = len(population)
-        sum = self.get_fitness_sum(population, fitness_function)
+    def selection(self, population: list, fitness) -> list:
+        # size = len(population)
+        # sum = self.get_fitness_sum(population, fitness_function)
 
-        chances = [(individual.fitness(fitness_function)/sum)*100 for individual in population]
-        return choices(population, weights=chances, k=size)
+        # chances = [individual.fitness(fitness_function)/sum for individual in population]
+        # return choices(population, weights=chances, k=size)
+        fitness_sum = sum(fitness)
+        chances = [fitness_v/fitness_sum for fitness_v in fitness]
+        population = choices(population, chances, k=len(population))
+        return population
 
     # @abstractmethod
     def solve(self, problem, pop0: list, t_max: int, more_data=False) -> tuple:
         t = 0
-        all_best_f = []
-        x_best, f_best = self.get_best(pop0, problem)
-        all_best_f.append(f_best)
+        all_f = []
         population = pop0
+        fitness = [problem(x) for x in pop0]
+        f_best = max(fitness)
+        x_best = pop0[np.argmax(fitness)]
         while t < t_max:
-            population = self.selection(population, problem)
+            population = self.selection(population, fitness)
             population = self.crossover(population)
             population = self.mutation(population)
-            x_t, f_t = self.get_best(population, problem)
+            fitness = [evaluate(x) for x in population]
+            f_t = np.max(fitness)
             if f_t > f_best:
-                x_best = x_t
+                x_best = population[np.argmax(fitness)]
                 f_best = f_t
+            all_f.append(f_best)
             t += 1
-            all_best_f.append(f_best)
         if more_data:
-            return x_best.get_genotype(), f_best, all_best_f
-        return x_best.get_genotype(), f_best
+            return x_best, f_best, all_f
+        return x_best, f_best
 
 
 population = []
-solver = GeneticAlgorithm(0.1, 0.8)
-for i in range(5):
-    population.append(Individual(get_random_genotype(100)))
-solver.solve(evaluate, population, 100, True)
+solver = GeneticAlgorithm(0.9, 0.11)
+for i in range(1000):
+    population.append(get_random_genotype(100))
+x_best, f_best, all_f = (solver.solve(evaluate, population, 2000, True))
+t_span = np.arange(2000)
+print(x_best, f_best)
+plt.plot(t_span, all_f)
+plt.show()
