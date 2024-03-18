@@ -87,17 +87,43 @@ def adjust_data(x):
 
 def test_50x200():
     t_max = 5000
+    t_span = np.arange(200)
     size_of_x = 100
     size_of_pop = 50
-    solver = GeneticAlgorithm(0.75, 0.02)
+    all_bests = []
+    avgs = []
+    sds = []
+    pc = 0.8
+    pm = 0.02
+    solver = GeneticAlgorithm(pc, pm)
     with open('data_50x200.csv', 'w') as fh:
         f_writer = csv.writer(fh)
         f_writer.writerow(['Best fitness', 'Genotype'])
         for i in range(200):
             print(f'Testing population number {i}')
             population = [get_random_genotype(size_of_x) for _ in range(size_of_pop)]
-            x_best, f_best = solver.solve(evaluate, population, t_max)
+            x_best, f_best, all_f, _ = solver.solve(evaluate, population, t_max, True)
+            all_bests.append((x_best, f_best))
+            avgs.append(np.mean(all_f))
+            sds.append(np.std(all_f))
             f_writer.writerow([f_best, x_best])
+    fig, axs = plt.subplots(2)
+    fig.suptitle(f"Testing 200 populations with pc = {pc}; pm = {pm}")
+    axs[0].plot(t_span, avgs, '-bo')
+    axs[0].set_title("Mean of best fitnesses")
+    axs[1].plot(t_span, sds, '-ro')
+    axs[1].set_title("Standard deviation of best fitnesses")
+    plt.show()
+
+    # making a heatmap of best individual
+
+    x, f = max(all_bests, key=itemgetter(1))
+    print(f)
+    x = adjust_data(x)
+    cmap = sns.color_palette(['white', 'red', 'green'], as_cmap=True)
+
+    sns.heatmap(x, cmap=cmap, annot=True, fmt='.0f', cbar=False, vmin=0, vmax=1)
+    plt.show()
 
 
 def test_parameter(param: bool):
@@ -117,7 +143,7 @@ def test_parameter(param: bool):
         if param:
             solver = GeneticAlgorithm(p, 1/size_of_pop)
         else:
-            solver = GeneticAlgorithm(0.75, p)
+            solver = GeneticAlgorithm(0.8, p)
         population = [get_random_genotype(size_of_x) for _ in range(size_of_pop)]
         x_best, f_best, all_f, _ = solver.solve(evaluate, population, t_max, True)
         all_bests.append((x_best, f_best))
