@@ -91,6 +91,7 @@ class GeneticAlgorithm(ABC):
     def solve(self, problem, pop0: list, t_max: int, more_data=False) -> tuple:
         t = 0
         all_f = []
+        avg_f = []
         population = pop0
         fitness = [problem(x) for x in pop0]
         f_best = max(fitness)
@@ -102,10 +103,11 @@ class GeneticAlgorithm(ABC):
             fitness = [evaluate(x) for x in population]
             f_t = np.max(fitness)
             if f_t > f_best:
-                x_best = population[np.argmax(fitness)]
+                x_best = deepcopy(population[np.argmax(fitness)])
                 f_best = f_t
             all_f.append(f_best)
+            avg_f.append(sum(fitness)/len(population))
             t += 1
         if more_data:
-            return x_best, f_best, all_f
+            return x_best, f_best, all_f, avg_f
         return x_best, f_best
