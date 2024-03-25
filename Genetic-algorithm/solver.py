@@ -1,19 +1,15 @@
-from abc import ABC, abstractmethod
-from random import shuffle, choices
+from random import choices
 from fitness_function import evaluate
-from individual import Individual, get_random_genotype
 import numpy as np
 from random import random, randint
 from copy import deepcopy
-import matplotlib.pyplot as plt
 
 
-class GeneticAlgorithm(ABC):
+class GeneticAlgorithm():
     def __init__(self, pc: float, pm: float) -> None:
         self._pc = pc
         self._pm = pm
 
-    # @abstractmethod
     def get_parameters(self) -> dict:
         params = {
             'Crossover probability': self._pc,
@@ -38,14 +34,6 @@ class GeneticAlgorithm(ABC):
         return (best_x, best_f)
 
     def crossover(self, population: list) -> list:
-        # new_pop = []
-        # shuffle(population)
-        # pairs = np.array_split(population, len(population)/2)
-        # for pair in pairs:
-        #     pair[0].crossover(self._pc, pair[1])
-        #     new_pop.append(pair[0])
-        #     new_pop.append(pair[1])
-        # return new_pop
         new_pop = []
         size = len(population)
         while population:
@@ -64,11 +52,6 @@ class GeneticAlgorithm(ABC):
         return new_pop
 
     def mutation(self, population: list) -> list:
-        # new_pop = []
-        # for individual in population:
-        #     individual.mutate(self._pm)
-        #     new_pop.append(individual)
-        # return new_pop
         for x in population:
             for n in range(len(x)):
                 chance = random()
@@ -77,18 +60,22 @@ class GeneticAlgorithm(ABC):
         return population
 
     def selection(self, population: list, fitness) -> list:
-        # size = len(population)
-        # sum = self.get_fitness_sum(population, fitness_function)
-
-        # chances = [individual.fitness(fitness_function)/sum for individual in population]
-        # return choices(population, weights=chances, k=size)
         fitness_sum = sum(fitness)
         chances = [fitness_v/fitness_sum for fitness_v in fitness]
         population = choices(population, chances, k=len(population))
         return population
 
-    # @abstractmethod
     def solve(self, problem, pop0: list, t_max: int, more_data=False) -> tuple:
+        # checking if individuals in first population are well-formed
+        # and if population doesn't consist of only zeros individuals
+        pop_sum = 0
+        for individual in pop0:
+            pop_sum += sum(individual)
+            for gene in individual:
+                if gene < 0 or gene > 1:
+                    return "Population is malformed."
+        if pop_sum == 0:
+            return "Population is malformed."
         t = 0
         all_f = []
         avg_f = []

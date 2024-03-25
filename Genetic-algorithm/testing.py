@@ -1,5 +1,4 @@
 from fitness_function import evaluate
-from individual import Individual, get_random_genotype
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -7,6 +6,8 @@ from solver import GeneticAlgorithm
 import csv
 from operator import itemgetter
 
+def get_random_genotype(size):
+    return np.random.randint(0, 2, size=size)
 
 def adjust_data(x):
     n = int(len(x) ** (0.5))
@@ -48,58 +49,23 @@ def adjust_data(x):
     x = np.array_split(x, n)
     return x
 
-# population = []
-# t_max = 10000
-# solver = GeneticAlgorithm(0.9, 0.11)
-# for i in range(10000):
-#     population.append(get_random_genotype(100))
-# x_best, f_best, all_f, avg_f = (solver.solve(evaluate, population, t_max, True))
-# t_span = np.arange(t_max)
-# fig1 = plt.figure("Best fitness")
-# plt.plot(t_span, all_f)
-# plt.show()
-# fig2 = plt.figure("Average fitness in population")
-# plt.plot(t_span[::10], avg_f[::10])
-# plt.show()
-
-# x_best = [1,1,1,1,1,1,1,1,1,1,
-#           1,1,1,1,1,1,1,1,1,1,
-#           1,0,0,0,0,0,0,0,0,0,
-#           1,1,1,1,1,1,1,1,1,1,
-#           0,0,0,0,1,1,1,1,1,1,
-#           1,1,1,1,1,1,0,0,0,0,
-#           1,1,1,1,1,1,1,1,1,1,
-#           1,0,0,0,0,0,0,0,0,0,
-#           1,1,1,1,1,1,1,1,1,1,
-#           1,1,1,1,1,1,1,1,1,1]
-# print(evaluate(x_best))
-
-# making a heatmap
-
-# x_best = adjust_data(x_best)
-# cmap = sns.color_palette(['white', 'red', 'green'], as_cmap=True)
-
-# sns.heatmap(x_best, cmap=cmap, annot=True, fmt='.0f', cbar=False, vmin=0, vmax=1)
-# plt.show()
-
-
 # testing 200 small populations
 
 def test_50x200():
     t_max = 5000
-    t_span = np.arange(200)
+    t_span = np.arange(10)
     size_of_x = 100
-    size_of_pop = 50
+    size_of_pop = 20
     all_bests = []
     avgs = []
     sds = []
-    pc = 0.8
-    pm = 0.02
+    pc = 0.80
+    pm = 0.05
     solver = GeneticAlgorithm(pc, pm)
     with open('data_50x200.csv', 'w') as fh:
         f_writer = csv.writer(fh)
         f_writer.writerow(['Best fitness', 'Genotype'])
-        for i in range(200):
+        for i in range(10):
             print(f'Testing population number {i}')
             population = [get_random_genotype(size_of_x) for _ in range(size_of_pop)]
             x_best, f_best, all_f, _ = solver.solve(evaluate, population, t_max, True)
@@ -127,11 +93,8 @@ def test_50x200():
 
 
 def test_parameter(param: bool):
-    if param:    # testing pc
-        parameter = np.arange(0, 1.02, 0.02)
-    else:        # testing pm
-        parameter = np.arange(0, 1.02, 0.02)
-    t_max = 5000
+    parameter = np.arange(0, 1.02, 0.02)
+    t_max = 2000
     size_of_x = 100
     size_of_pop = 50
     all_bests = []
@@ -174,7 +137,8 @@ def test_parameter(param: bool):
     sns.heatmap(x, cmap=cmap, annot=True, fmt='.0f', cbar=False, vmin=0, vmax=1)
     plt.show()
 
-# test_parameter(True)
+
+test_parameter(True)
 # test_parameter(False)
 
-test_50x200()
+# test_50x200()
