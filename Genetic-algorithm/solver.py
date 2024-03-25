@@ -1,4 +1,3 @@
-from abc import ABC, abstractmethod
 from random import shuffle, choices
 from fitness_function import evaluate
 from individual import Individual, get_random_genotype
@@ -8,7 +7,7 @@ from copy import deepcopy
 import matplotlib.pyplot as plt
 
 
-class GeneticAlgorithm(ABC):
+class GeneticAlgorithm():
     def __init__(self, pc: float, pm: float) -> None:
         self._pc = pc
         self._pm = pm

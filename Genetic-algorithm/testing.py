@@ -85,21 +85,16 @@ def adjust_data(x):
 
 # testing 200 small populations
 
-def test_50x200():
-    t_max = 5000
-    t_span = np.arange(200)
-    size_of_x = 100
-    size_of_pop = 50
+def test_populations(size_of_pop, size_of_x, pc, pm, number, t_max):
+    t_span = np.arange(number)
     all_bests = []
     avgs = []
     sds = []
-    pc = 0.8
-    pm = 0.02
     solver = GeneticAlgorithm(pc, pm)
     with open('data_50x200.csv', 'w') as fh:
         f_writer = csv.writer(fh)
         f_writer.writerow(['Best fitness', 'Genotype'])
-        for i in range(200):
+        for i in range(number):
             print(f'Testing population number {i}')
             population = [get_random_genotype(size_of_x) for _ in range(size_of_pop)]
             x_best, f_best, all_f, _ = solver.solve(evaluate, population, t_max, True)
@@ -108,11 +103,17 @@ def test_50x200():
             sds.append(np.std(all_f))
             f_writer.writerow([f_best, x_best])
     fig, axs = plt.subplots(2)
-    fig.suptitle(f"Testing 200 populations with pc = {pc}; pm = {pm}")
+    fig.suptitle(f"Testing {number} populations with pc = {pc}; pm = {pm}")
     axs[0].plot(t_span, avgs, '-bo')
     axs[0].set_title("Mean of best fitnesses")
     axs[1].plot(t_span, sds, '-ro')
     axs[1].set_title("Standard deviation of best fitnesses")
+    plt.show()
+
+    fig2 = plt.figure("Best fitness over time")
+    plt.plot(np.arange(t_max), all_f)
+    plt.xlabel('Time')
+    plt.ylabel('Best fitness')
     plt.show()
 
     # making a heatmap of best individual
@@ -131,12 +132,14 @@ def test_parameter(param: bool):
         parameter = np.arange(0, 1.02, 0.02)
     else:        # testing pm
         parameter = np.arange(0, 1.02, 0.02)
-    t_max = 5000
+    t_max = 2000
     size_of_x = 100
     size_of_pop = 50
     all_bests = []
+    avgs_best = []
     avgs = []
     sds = []
+    sds_best = []
     for p in parameter:
         p = round(p, 2)
         print(f'testing {p}')
@@ -145,10 +148,12 @@ def test_parameter(param: bool):
         else:
             solver = GeneticAlgorithm(0.8, p)
         population = [get_random_genotype(size_of_x) for _ in range(size_of_pop)]
-        x_best, f_best, all_f, _ = solver.solve(evaluate, population, t_max, True)
+        x_best, f_best, all_f, all_avgs = solver.solve(evaluate, population, t_max, True)
         all_bests.append((x_best, f_best))
-        avgs.append(np.mean(all_f))
-        sds.append(np.std(all_f))
+        avgs_best.append(np.mean(all_f))
+        sds_best.append(np.std(all_f))
+        avgs.append(np.mean(all_avgs))
+        sds.append(np.std(all_avgs))
 
     # visualizing data
     if param:
@@ -156,12 +161,21 @@ def test_parameter(param: bool):
     else:
         px = 'pm'
 
+
     fig, axs = plt.subplots(2)
     fig.suptitle(f"Testing {px} in range [0; 1]")
-    axs[0].plot(parameter, avgs, '-bo')
+    axs[0].plot(parameter, avgs_best, '-bo')
     axs[0].set_title("Mean of best fitnesses")
-    axs[1].plot(parameter, sds, '-ro')
+    axs[1].plot(parameter, sds_best, '-ro')
     axs[1].set_title("Standard deviation of best fitnesses")
+    plt.show()
+
+    fig2, axs2 = plt.subplots(2)
+    fig2.suptitle(f"Testing {px} in range [0; 1]")
+    axs2[0].plot(parameter, avgs_best, '-bo')
+    axs2[0].set_title("Mean of all fitnesses")
+    axs2[1].plot(parameter, sds_best, '-ro')
+    axs2[1].set_title("Standard deviation of all fitnesses")
     plt.show()
 
     # making a heatmap of best individual
@@ -174,7 +188,7 @@ def test_parameter(param: bool):
     sns.heatmap(x, cmap=cmap, annot=True, fmt='.0f', cbar=False, vmin=0, vmax=1)
     plt.show()
 
-# test_parameter(True)
+test_parameter(True)
 # test_parameter(False)
 
-test_50x200()
+# test_populations(50, 100, 0.8, 0.02, 20, 1000)
