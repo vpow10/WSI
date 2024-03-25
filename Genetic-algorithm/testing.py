@@ -43,7 +43,6 @@ def adjust_data(x):
 
     for i in range(n):
         for j in range(n):
-            # print(avaliable[i][j], x[i*n+j])
             if not avaliable[i][j] and x[i*n+j]:
                 x[i*n+j] = 0.6
     x = np.array_split(x, n)
@@ -94,10 +93,7 @@ def test_populations(size_of_pop, size_of_x, pc, pm, number, t_max):
 
 
 def test_parameter(param: bool):
-    if param:    # testing pc
-        parameter = np.arange(0, 1.02, 0.02)
-    else:        # testing pm
-        parameter = np.arange(0, 1.02, 0.02)
+    parameter = np.arange(0, 1.02, 0.02)
     t_max = 2000
     size_of_x = 100
     size_of_pop = 50
@@ -112,7 +108,7 @@ def test_parameter(param: bool):
         if param:
             solver = GeneticAlgorithm(p, 1/size_of_pop)
         else:
-            solver = GeneticAlgorithm(0.8, p)
+            solver = GeneticAlgorithm(0.84, p)
         population = [get_random_genotype(size_of_x) for _ in range(size_of_pop)]
         x_best, f_best, all_f, all_avgs = solver.solve(evaluate, population, t_max, True)
         all_bests.append((x_best, f_best))
@@ -138,9 +134,9 @@ def test_parameter(param: bool):
 
     fig2, axs2 = plt.subplots(2)
     fig2.suptitle(f"Testing {px} in range [0; 1]")
-    axs2[0].plot(parameter, avgs_best, '-bo')
+    axs2[0].plot(parameter, avgs, '-bo')
     axs2[0].set_title("Mean of all fitnesses")
-    axs2[1].plot(parameter, sds_best, '-ro')
+    axs2[1].plot(parameter, sds, '-ro')
     axs2[1].set_title("Standard deviation of all fitnesses")
     plt.show()
 
@@ -154,7 +150,7 @@ def test_parameter(param: bool):
     sns.heatmap(x, cmap=cmap, annot=True, fmt='.0f', cbar=False, vmin=0, vmax=1)
     plt.show()
 
-test_parameter(True)
+# test_parameter(True)
 # test_parameter(False)
 
-# test_populations(50, 100, 0.8, 0.02, 20, 1000)
+test_populations(50, 100, 0.84, 0.02, 100, 2000)
