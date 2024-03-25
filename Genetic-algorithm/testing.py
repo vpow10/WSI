@@ -55,6 +55,9 @@ def test_populations(size_of_pop, size_of_x, pc, pm, number, t_max):
     all_bests = []
     avgs = []
     sds = []
+    avgs_best = []
+    sds_best = []
+    best_f = [0]
     solver = GeneticAlgorithm(pc, pm)
     with open('data_50x200.csv', 'w') as fh:
         f_writer = csv.writer(fh)
@@ -62,21 +65,33 @@ def test_populations(size_of_pop, size_of_x, pc, pm, number, t_max):
         for i in range(number):
             print(f'Testing population number {i}')
             population = [get_random_genotype(size_of_x) for _ in range(size_of_pop)]
-            x_best, f_best, all_f, _ = solver.solve(evaluate, population, t_max, True)
+            x_best, f_best, all_f, all_avgs = solver.solve(evaluate, population, t_max, True)
             all_bests.append((x_best, f_best))
-            avgs.append(np.mean(all_f))
-            sds.append(np.std(all_f))
+            avgs.append(np.mean(all_avgs))
+            sds.append(np.std(all_avgs))
+            avgs_best.append(np.mean(all_f))
+            sds_best.append(np.std(all_f))
             f_writer.writerow([f_best, x_best])
+            if np.max(best_f) < np.max(all_f):
+                best_f = all_f
     fig, axs = plt.subplots(2)
     fig.suptitle(f"Testing {number} populations with pc = {pc}; pm = {pm}")
-    axs[0].plot(t_span, avgs, '-bo')
+    axs[0].plot(t_span, avgs_best, '-bo')
     axs[0].set_title("Mean of best fitnesses")
-    axs[1].plot(t_span, sds, '-ro')
+    axs[1].plot(t_span, sds_best, '-ro')
     axs[1].set_title("Standard deviation of best fitnesses")
     plt.show()
 
-    fig2 = plt.figure("Best fitness over time")
-    plt.plot(np.arange(t_max), all_f)
+    fig2, axs2 = plt.subplots(2)
+    fig2.suptitle(f"Testing {number} populations with pc = {pc}; pm = {pm}")
+    axs2[0].plot(t_span, avgs, '-bo')
+    axs2[0].set_title("Mean of all fitnesses")
+    axs2[1].plot(t_span, sds, '-ro')
+    axs2[1].set_title("Standard deviation of all fitnesses")
+    plt.show()
+
+    fig3 = plt.figure("Best fitness over time")
+    plt.plot(np.arange(t_max), best_f)
     plt.xlabel('Time')
     plt.ylabel('Best fitness')
     plt.show()
@@ -90,7 +105,6 @@ def test_populations(size_of_pop, size_of_x, pc, pm, number, t_max):
 
     sns.heatmap(x, cmap=cmap, annot=True, fmt='.0f', cbar=False, vmin=0, vmax=1)
     plt.show()
-
 
 def test_parameter(param: bool):
     parameter = np.arange(0, 1.02, 0.02)
@@ -150,7 +164,7 @@ def test_parameter(param: bool):
     sns.heatmap(x, cmap=cmap, annot=True, fmt='.0f', cbar=False, vmin=0, vmax=1)
     plt.show()
 
-# test_parameter(True)
-# test_parameter(False)
+test_parameter(True)
+test_parameter(False)
 
 test_populations(50, 100, 0.84, 0.02, 100, 2000)
