@@ -6,6 +6,7 @@ from copy import deepcopy
 
 
 class GeneticAlgorithm():
+class GeneticAlgorithm():
     def __init__(self, pc: float, pm: float) -> None:
         self._pc = pc
         self._pm = pm
