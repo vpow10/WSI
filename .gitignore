@@ -1,3 +1,7 @@
 Genetic-algorithm/__pycache__/fitness_function.cpython-310.pyc
 Genetic-algorithm/__pycache__/individual.cpython-310.pyc
 Genetic-algorithm/__pycache__/solver.cpython-310.pyc
+Minimax/__pycache__/DnB_functionals.cpython-310.pyc
+Minimax/__pycache__/heuristic_DnB.cpython-310.pyc
+Minimax/__pycache__/minimax.cpython-310.pyc
+
