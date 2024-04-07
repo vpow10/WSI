@@ -2,40 +2,58 @@ from typing import Callable, List
 
 
 class Minimax():
-    def __init__(self, size) -> None:
-        self.size = size
-
-    def get_heuristic(self, heuristic: Callable, moves: List, max: bool, scores: Callable):
-        if len(moves) == 1:
-            return scores()['max'] if max else scores()['min']
-        return heuristic(self.size)
+    def __init__(self, game_functionals: object) -> None:
+        self.game_functionals = game_functionals
+        self.first_len = 0
+        self.values = dict()
+        self.n = -1
+        self.first_player = True
+        self.prev_heuristic = 0
 
     def alphabeta(
-            self, node: Callable, heuristic: Callable, make_move: Callable, depth: int, alpha: int, beta: int, max_player: bool, scores: Callable
+            self, node: list, heuristic: Callable, depth: int, alpha: int, beta: int, max_player: bool, i=0
     ):
-        best_moves = dict()
-        moves = node()
-        if depth == 0 or len(moves) == 1:
-            return self.get_heuristic(heuristic, moves, max_player, scores)
+        if i == 0:      # only true during first call
+            self.first_len = len(node)
+            self.values = dict()
+            self.n = -1
+            self.first_player = max_player
+            self.prev_heuristic = 0
+            i += 1
+        if depth == 0 or len(node) == 1:   # either max depth or terminal state
+            return heuristic(node)
         if max_player:
             value = float('-inf')
-            for move in moves:
-                make_move(move)
-                if value in best_moves.keys():
-                    best_moves[value].append(move)
-                else:
-                    best_moves[value] = [move]
-                value = max(value, self.alphabeta(node, heuristic, make_move, depth-1, alpha, beta, max_player, scores))
+            for move in node:
+                if len(node) == self.first_len:     # true only during the very first moves
+                    self.n += 1
+                    self.values[self.n] = 0
+                child = node.remove(move)
+                max_player = self.next_player(heuristic(node), self.prev_heuristic, max_player)
+                self.prev_heuristic = heuristic(node)
+                value = max(value, self.alphabeta(child, heuristic, depth-1, alpha, beta, max_player))
                 alpha = max(alpha, value)
                 if value >= beta:
                     break
+                if self.first_player:
+                    self.values[self.n] = max(self.values[self.n], value)
             return value
         else:
             value = float('inf')
-            for move in moves:
-                make_move(move)
-                value = min(value, self.alphabeta(move, depth-1, alpha, beta, max_player, scores))
+            for move in node:
+                if len(node) == self.first_len:     # true only during the very first moves
+                    self.n += 1
+                    self.values[self.n] = 0
+                child = node.remove(move)
+                max_player = self.next_player(heuristic(node), self.prev_heuristic, max_player)
+                self.prev_heuristic = heuristic(node)
+                value = min(value, self.alphabeta(child, heuristic, depth-1, alpha, beta, max_player))
                 beta = min(beta, value)
                 if value <= alpha:
                     break
+                if not self.first_player:
+                    self.values[self.n] = min(self.values[self.n], value)
             return value
+
+    def next_player(self, heuristic: int, prev_heuristic: int, player: bool) -> bool:
+        return self.game_functionals.next_player(heuristic, prev_heuristic, player)
