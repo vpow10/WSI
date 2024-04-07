@@ -5,77 +5,58 @@ from copy import deepcopy
 
 
 class Minimax():
-    def __init__(self) -> None:
-        self.possible_moves = dict()
-        self.last_scores_max = 0
-        self.last_scores_min = 0
-        self.first_move = None
-
-    # def get_heuristic(self, heuristic: Callable, node: Callable, max: bool, scores: Callable):
-    #     if len(node()) == 1:
-    #         return scores['max'] if max else scores['min']
-    #     return heuristic(self.size)
+    def __init__(self, game_functionals: object) -> None:
+        self.game_functionals = game_functionals
+        self.first_len = 0
+        self.values = dict()
+        self.n = -1
+        self.first_player = True
+        self.prev_heuristic = 0
 
     def alphabeta(
-            self, node: Callable, game: object, state0: object, make_move: Callable, depth: int, alpha: int, beta: int, max_player: bool, scores: Callable, i=-1
+            self, node: list, heuristic: Callable, depth: int, alpha: int, beta: int, max_player: bool, i=0
     ):
-        if i == -1:
-            self.possible_moves = dict()
+        if i == 0:      # only true during first call
+            self.first_len = len(node)
+            self.values = dict()
+            self.n = -1
+            self.first_player = max_player
+            self.prev_heuristic = 0
             i += 1
-        moves = node()
-        if depth == 0:   # max depth
-            # make_move(move)
-            return scores()['max'] - scores()['min']
-        if len(moves) == 1:
-            value = scores()['max'] - scores()['min']
-            self.possible_moves[value] = [moves[0]]
-            return value
-        #     # make_move(moves[0])
-        #     return scores()['max'] - scores()['min']
+        if depth == 0 or len(node) == 1:   # either max depth or terminal state
+            return heuristic(node)
         if max_player:
             value = float('-inf')
-            for move in moves:
-                if i == 0:
-                    self.first_move = deepcopy(move)
-                    self.last_scores_max = 0
-                    self.last_scores_min = 0
-                make_move(move)
-                scores_max = scores()['max']
-                max_player = True if scores_max - self.last_scores_max == 1 else False
-                i += 1
-                self.last_scores_max = scores_max
-                value = max(value, self.alphabeta(node, game, state0, make_move, depth-1, alpha, beta, max_player, scores, i))
-                if value in self.possible_moves.keys():
-                    self.possible_moves[value].append(self.first_move)
-                else:
-                    self.possible_moves[value] = [self.first_move]
+            for move in node:
+                if len(node) == self.first_len:     # true only during the very first moves
+                    self.n += 1
+                    self.values[self.n] = 0
+                child = node.remove(move)
+                max_player = self.next_player(heuristic(node), self.prev_heuristic, max_player)
+                self.prev_heuristic = heuristic(node)
+                value = max(value, self.alphabeta(child, heuristic, depth-1, alpha, beta, max_player))
                 alpha = max(alpha, value)
                 if value >= beta:
                     break
-            i = 0
+                if self.first_player:
+                    self.values[self.n] = max(self.values[self.n], value)
             return value
         else:
             value = float('inf')
-            for move in moves:
-                if i == 0:
-                    self.first_move = deepcopy(move)
-                    self.last_scores_max = 0
-                    self.last_scores_min = 0
-                make_move(move)
-                scores_min = scores()['min']
-                max_player = False if scores_min - self.last_scores_min == 1 else True
-                i += 1
-                value = min(value, self.alphabeta(node, game, state0, make_move, depth-1, alpha, beta, max_player, scores, i))
-                if value in self.possible_moves.keys():
-                    self.possible_moves[value].append(self.first_move)
-                else:
-                    self.possible_moves[value] = [self.first_move]
+            for move in node:
+                if len(node) == self.first_len:     # true only during the very first moves
+                    self.n += 1
+                    self.values[self.n] = 0
+                child = node.remove(move)
+                max_player = self.next_player(heuristic(node), self.prev_heuristic, max_player)
+                self.prev_heuristic = heuristic(node)
+                value = min(value, self.alphabeta(child, heuristic, depth-1, alpha, beta, max_player))
                 beta = min(beta, value)
                 if value <= alpha:
                     break
-            i = 0
-            game.state = state0
+                if not self.first_player:
+                    self.values[self.n] = min(self.values[self.n], value)
             return value
 
-    def choose_move(self, value: int):
-        return choice(self.possible_moves[value])
+    def next_player(self, heuristic: int, prev_heuristic: int, player: bool) -> bool:
+        return self.game_functionals.next_player(heuristic, prev_heuristic, player)
