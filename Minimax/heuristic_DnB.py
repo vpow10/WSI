@@ -1,4 +1,7 @@
-def heuristic_DnB(size: int):
+from typing import Dict
+
+
+def heuristic_DnB(size: int, move: Dict):
     if size <= 1:
         return "Wrong board!"
     dots = [[0 for _ in range(size)] for _ in range(size)]
@@ -17,7 +20,7 @@ def heuristic_DnB(size: int):
     for i in range(size-2):
         for n in range(size-2):
             dots [i+1][n+1] = 4
-    return dots
+
 
 # for row in heuristic_DnB(6):
 #     print(row)
