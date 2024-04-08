@@ -19,9 +19,15 @@ def random_game(size, depth):
     while not game.is_finished():
         state = game.state
         minimax.alphabeta(state, depth, float('-inf'), float('inf'), current_player)
-        possible_moves = minimax.values[max(minimax.values.keys())] if current_player else minimax.values[min(minimax.values.keys())]
+        try:
+            possible_moves = minimax.values[max(minimax.values.keys())] if current_player else minimax.values[min(minimax.values.keys())]
+            print(minimax.values)
+        except ValueError:      # depth equals 0 so moves are random
+            possible_moves = [i for i in range(len(all_moves)) if all_moves[i] in game.get_moves()]
         move = random.choice(possible_moves)
+        print(move)
         game.make_move(all_moves[move])
+        print(game.state)
         score = game.state.get_scores()['max'] if current_player else game.state.get_scores()['min']
         i += 1
         next_player = minimax.next_player(score, prev_score_max if current_player else prev_score_min, current_player)
@@ -34,7 +40,7 @@ def random_game(size, depth):
     if winner is None:
         print('Draw!')
     else:
-        print('Winner: Player' + winner)
+        print('Winner: Player ' + winner)
 
 def test_different_depths(size, depth1, depth2):
     game = DotsAndBoxes(size, first_player='max', second_player='min')
@@ -83,4 +89,5 @@ def test_different_depths(size, depth1, depth2):
     else:
         print('Winner: Player ' + winner)
 
-test_different_depths(3, 1, 4)
+# test_different_depths(3, 3, 3)
+random_game(3, 3)

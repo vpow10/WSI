@@ -17,6 +17,7 @@ class Minimax:
         self.prev_score_min = 0
         self.n = 0
         self.starting_len = 0
+        self.after_break = False
 
     def alphabeta(self, state, depth, alpha, beta, maximizing_player, i=0):
         if i == 0:      # only true during first call
@@ -43,14 +44,16 @@ class Minimax:
                 new_value = self.alphabeta(child, depth-1, alpha, beta, next_player, i)
                 value = max(value, new_value)
                 alpha = max(alpha, value)
-                if value >= beta:
-                    break
                 if len(child.get_moves()) == self.starting_len - 1:
                     move_index = self.all_moves.index(move)
                     if new_value not in self.values:
                         self.values[new_value] = [move_index]
                     else:
                         self.values[new_value].append(move_index)
+                if value >= beta:
+                    # TODO: TO PSUJE
+                    self.after_break = True
+                    break
             return value
         else:
             value = float('inf')
@@ -65,14 +68,15 @@ class Minimax:
                 new_value = self.alphabeta(child, depth-1, alpha, beta, next_player, i)
                 value = min(value, new_value)
                 beta = min(beta, value)
-                if value <= alpha:
-                    break
                 if len(child.get_moves()) == self.starting_len - 1:
                     move_index = self.all_moves.index(move)
                     if new_value not in self.values:
                         self.values[new_value] = [move_index]
                     else:
                         self.values[new_value].append(move_index)
+                if value <= alpha:
+                    # TODO: TO PSUJE
+                    break
             return value
 
     def next_player(self, score: int, prev_score: int, player: bool) -> bool:
