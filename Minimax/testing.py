@@ -89,5 +89,5 @@ def test_different_depths(size, depth1, depth2):
     else:
         print('Winner: Player ' + winner)
 
-# test_different_depths(3, 3, 3)
-random_game(3, 3)
+test_different_depths(3, 3, 1)
+# random_game(3, 4)

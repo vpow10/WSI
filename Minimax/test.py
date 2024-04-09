@@ -18,6 +18,7 @@ class Minimax:
         self.n = 0
         self.starting_len = 0
         self.after_break = False
+        self.break_prospect = True
 
     def alphabeta(self, state, depth, alpha, beta, maximizing_player, i=0):
         if i == 0:      # only true during first call
@@ -34,9 +35,8 @@ class Minimax:
         if maximizing_player:
             value = float('-inf')
             for move in state.get_moves():
+                break_prospect = self.check_break_prospect(state, maximizing_player, state.get_scores()['max'])
                 child = deepcopy(state)
-                # child._current_player = self.first_player_name
-                # child._other_player = self.second_player_name
                 child = child.make_move(move)
                 score = child.get_scores()['max']
                 next_player = self.next_player(score, self.prev_score_max, maximizing_player)
@@ -44,23 +44,23 @@ class Minimax:
                 new_value = self.alphabeta(child, depth-1, alpha, beta, next_player, i)
                 value = max(value, new_value)
                 alpha = max(alpha, value)
+                if break_prospect:
+                    if value >= beta:
+                        # TODO: TO PSUJE
+                        break
                 if len(child.get_moves()) == self.starting_len - 1:
+                    value = float('-inf')
                     move_index = self.all_moves.index(move)
                     if new_value not in self.values:
                         self.values[new_value] = [move_index]
                     else:
                         self.values[new_value].append(move_index)
-                if value >= beta:
-                    # TODO: TO PSUJE
-                    self.after_break = True
-                    break
             return value
         else:
             value = float('inf')
             for move in state.get_moves():
                 child = deepcopy(state)
-                # child._current_player = self.second_player_name
-                # child._other_player = self.first_player_name
+                break_prospect = self.check_break_prospect(child, maximizing_player, child.get_scores()['min'])
                 child = child.make_move(move)
                 score = child.get_scores()['min']
                 next_player = self.next_player(score, self.prev_score_min, maximizing_player)
@@ -68,15 +68,17 @@ class Minimax:
                 new_value = self.alphabeta(child, depth-1, alpha, beta, next_player, i)
                 value = min(value, new_value)
                 beta = min(beta, value)
+                if break_prospect:
+                    if value <= alpha:
+                        # TODO: TO PSUJE
+                        break
                 if len(child.get_moves()) == self.starting_len - 1:
+                    value = float('inf')
                     move_index = self.all_moves.index(move)
                     if new_value not in self.values:
                         self.values[new_value] = [move_index]
                     else:
                         self.values[new_value].append(move_index)
-                if value <= alpha:
-                    # TODO: TO PSUJE
-                    break
             return value
 
     def next_player(self, score: int, prev_score: int, player: bool) -> bool:
@@ -84,3 +86,16 @@ class Minimax:
             return True if score - prev_score == 1 else False
         else:
             return False if score - prev_score == 1 else True
+
+    def check_break_prospect(self, state, player, act_score):
+        simulation = deepcopy(state)
+        simulation._current_player = 'max' if player else 'min'
+        simulation._other_player = 'min' if player else 'max'
+        moves = simulation.get_moves()
+        for move in moves:
+            child = deepcopy(simulation)
+            child = child.make_move(move)
+            score = child.get_scores()['max'] if player else child.get_scores()['min']
+            if score - act_score == 1:
+                return False
+        return True
