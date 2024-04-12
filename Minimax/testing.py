@@ -6,9 +6,11 @@ import random
 from test import Minimax
 from copy import deepcopy
 from DnB_functionals import DnB_functionals
+from typing import List, Dict, Tuple
+import csv
 
 
-def random_game(size, depth):
+def random_game(size: int, depth: int):
     game = DotsAndBoxes(size, first_player='max', second_player='min')
     all_moves = game.get_moves()
     minimax = Minimax(size)
@@ -25,9 +27,9 @@ def random_game(size, depth):
         except ValueError:      # depth equals 0 so moves are random
             possible_moves = [i for i in range(len(all_moves)) if all_moves[i] in game.get_moves()]
         move = random.choice(possible_moves)
-        print(move)
+        # print(move)
         game.make_move(all_moves[move])
-        print(game.state)
+        # print(game.state)
         score = game.state.get_scores()['max'] if current_player else game.state.get_scores()['min']
         i += 1
         next_player = minimax.next_player(score, prev_score_max if current_player else prev_score_min, current_player)
@@ -37,12 +39,9 @@ def random_game(size, depth):
             prev_score_min = score
         current_player = next_player
     winner = game.get_winner()
-    if winner is None:
-        print('Draw!')
-    else:
-        print('Winner: Player ' + winner)
+    return winner
 
-def test_different_depths(size, depth1, depth2):
+def test_different_depths(size: int, depth1: int, depth2: int) -> str:
     game = DotsAndBoxes(size, first_player='max', second_player='min')
     all_moves = game.get_moves()
     minimax1 = Minimax(size)
@@ -56,13 +55,13 @@ def test_different_depths(size, depth1, depth2):
             minimax1.alphabeta(state, depth1, float('-inf'), float('inf'), current_player)
             try:
                 possible_moves1 = minimax1.values[max(minimax1.values.keys())]
-                print(minimax1.values)
+                # print(minimax1.values)
             except ValueError:      # depth equals 0 so moves are random
                 possible_moves1 = [i for i in range(len(all_moves)) if all_moves[i] in game.get_moves()]
             move = random.choice(possible_moves1)
-            print(move)
+            # print(move)
             game.make_move(all_moves[move])
-            print(game.state)
+            # print(game.state)
             score = game.state.get_scores()['max']
             next_player = minimax1.next_player(score, prev_score_max, current_player)
             prev_score_max = score
@@ -71,23 +70,43 @@ def test_different_depths(size, depth1, depth2):
             minimax2.alphabeta(state, depth2, float('-inf'), float('inf'), current_player)
             try:
                 possible_moves2 = minimax2.values[min(minimax2.values.keys())]
-                print(minimax2.values)
+                # print(minimax2.values)
             except ValueError:      # depth equals 0 so moves are random
                 possible_moves2 = [i for i in range(len(all_moves)) if all_moves[i] in game.get_moves()]
-            print(possible_moves2)
+            # print(possible_moves2)
             move = random.choice(possible_moves2)
-            print(move)
+            # print(move)
             game.make_move(all_moves[move])
-            print(game.state)
+            # print(game.state)
             score = game.state.get_scores()['min']
             next_player = minimax2.next_player(score, prev_score_min, current_player)
             prev_score_min = score
             current_player = next_player
     winner = game.get_winner()
-    if winner is None:
-        print('Draw!')
-    else:
-        print('Winner: Player ' + winner)
+    return winner
 
-test_different_depths(3, 3, 1)
-# random_game(3, 4)
+def test_depths(size: int) -> Dict[Tuple[int, int], Dict[str, int]]:
+    data = {}
+    for i in range(0, 6):
+        for j in range(0, 6):
+            results = {'max': 0, 'min': 0, 'draw': 0}
+            print('Depth1: ' + str(i) + ' Depth2: ' + str(j))
+            for i in range(50):
+                print('Testing number ' + str(i) + ' out of 100')
+                winner = test_different_depths(size, i, j)
+                if winner is None:
+                    results['draw'] += 1
+                else:
+                    results[winner] += 1
+            data[(i, j)] = results
+
+def save_to_csv(data: Dict[Tuple[int, int], Dict[str, int]], filename: str) -> None:
+    with open(filename, 'w') as file:
+        writer = csv.writer(file)
+        writer.writerow(['Depth1', 'Depth2', 'Max', 'Min', 'Draw'])
+        for key, value in data.items():
+            writer.writerow([key[0], key[1], value['max'], value['min'], value['draw']])
+    print('Data saved to ' + filename)
+
+save_to_csv(test_depths(3), 'results.csv')
+# print(test_different_depths(3, 3, 3))

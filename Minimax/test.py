@@ -5,7 +5,7 @@ sys.path.insert(2, '/home/jasiek/WSI/two-player-games')
 from dots_and_boxes import DotsAndBoxes
 from random import choice
 from minimax import Minimax
-from copy import deepcopy
+from copy import deepcopy, copy
 
 
 class Minimax:
@@ -35,8 +35,8 @@ class Minimax:
         if maximizing_player:
             value = float('-inf')
             for move in state.get_moves():
-                break_prospect = self.check_break_prospect(state, maximizing_player, state.get_scores()['max'])
-                child = deepcopy(state)
+                # break_prospect = self.check_break_prospect(state, maximizing_player, state.get_scores()['max'])
+                child = copy(state)
                 child = child.make_move(move)
                 score = child.get_scores()['max']
                 next_player = self.next_player(score, self.prev_score_max, maximizing_player)
@@ -44,12 +44,9 @@ class Minimax:
                 new_value = self.alphabeta(child, depth-1, alpha, beta, next_player, i)
                 value = max(value, new_value)
                 alpha = max(alpha, value)
-                if break_prospect:
-                    if value >= beta:
-                        # TODO: TO PSUJE
-                        break
+                if value >= beta:
+                    return value
                 if len(child.get_moves()) == self.starting_len - 1:
-                    value = float('-inf')
                     move_index = self.all_moves.index(move)
                     if new_value not in self.values:
                         self.values[new_value] = [move_index]
@@ -59,8 +56,8 @@ class Minimax:
         else:
             value = float('inf')
             for move in state.get_moves():
-                child = deepcopy(state)
-                break_prospect = self.check_break_prospect(child, maximizing_player, child.get_scores()['min'])
+                child = copy(state)
+                # break_prospect = self.check_break_prospect(child, maximizing_player, child.get_scores()['min'])
                 child = child.make_move(move)
                 score = child.get_scores()['min']
                 next_player = self.next_player(score, self.prev_score_min, maximizing_player)
@@ -68,12 +65,9 @@ class Minimax:
                 new_value = self.alphabeta(child, depth-1, alpha, beta, next_player, i)
                 value = min(value, new_value)
                 beta = min(beta, value)
-                if break_prospect:
-                    if value <= alpha:
-                        # TODO: TO PSUJE
-                        break
+                if value <= alpha:
+                    return value
                 if len(child.get_moves()) == self.starting_len - 1:
-                    value = float('inf')
                     move_index = self.all_moves.index(move)
                     if new_value not in self.values:
                         self.values[new_value] = [move_index]
