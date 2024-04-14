@@ -96,7 +96,7 @@ def test_different_depths(size: int, depth1: int, depth2: int, track: bool = Fal
             print('Current state: ' + str(game.state))
     winner = game.get_winner()
     scores = game.state.get_scores()
-    # print('Winner: ' + str(winner))
+    print('Winner: ' + str(winner))
     return winner, scores
 
 def test_depths(size: int) -> Dict[Tuple[int, int], Dict[str, int]]:
