@@ -6,7 +6,7 @@ df = pd.read_csv('data/cardio_train.csv', sep=';', index_col='id')
 
 def discretize(data: pd.core.frame.DataFrame):
 
-    # Discretize the age column into 4 bins: 0-35 = 1, 35-45 = 2, 45-60 = 3
+    # Discretize the age column into 4 bins (in years): 0-35 = 1, 35-45 = 2, 45-60 = 3
     data['age'] = pd.cut(data['age'], bins=[0, 35*365.25, 45*365.25, 65*365.25], labels=[1, 2, 3])
 
     # Discretize the systolic blood pressure column into 4 bins: 0-120 = 1, 120-140 = 2, 140-180 = 3

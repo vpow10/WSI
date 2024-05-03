@@ -14,8 +14,6 @@ class Node:
 class ID3_algorithm():
     def __init__(self, data: pd.core.frame.DataFrame):
         self.data = data
-        # self.data_train, self.data_test = train_test_split(data, test_size=0.2)
-        # self.data_test, self.data_val = train_test_split(self.data_test, test_size=0.5)
         self.result = None
         self.predictions = None
 
@@ -44,8 +42,11 @@ class ID3_algorithm():
                 X_col_temp = X[col]
                 X_col_temp.dropna(inplace=True)
                 X_col_temp = X_col_temp.astype(float)
-                mean = round(X_col_temp.mean())
-                X[col] = X[col].fillna(mean)
+                try:
+                    mean = round(X_col_temp.mean())
+                    X[col] = X[col].fillna(mean).astype(float)
+                except ValueError:      # if every value in a column is NaN
+                    raise ValueError("All values in a column are NaN")
         if len(set(Y)) == 1:
             # If all the labels are the same, return a leaf node
             return Node(result=Y.iloc[0])
@@ -77,47 +78,26 @@ class ID3_algorithm():
         return node
 
     def predict(self, X, tree):
+        # Check for NaN values and replace them with the mean of the column
+        for col in X.columns:
+            if X[col].isnull().values.any():
+                X_col_temp = X[col]
+                X_col_temp.dropna(inplace=True)
+                X_col_temp = X_col_temp.astype(float)
+                try:   # if every value in a column is NaN
+                    mean = round(X_col_temp.mean())
+                    X[col] = X[col].fillna(mean)
+                except ValueError:
+                    raise ValueError("All values in a column are NaN")
         predictions = []
         for _, sample in X.iterrows():
             node = tree
             while node.children:
+                if sample[node.feature] not in node.children:
+                    break
                 node = node.children[sample[node.feature]]
             predictions.append(node.result)
         return predictions
 
     def accuracy(self, Y_true, Y_pred):
         return sum([Y_true[i] == Y_pred[i] for i in range(len(Y_true))]) / len(Y_true)
-
-
-# df = pd.read_csv('data/cardio_train.csv', sep=';', index_col='id')
-# print(df['ap_hi'].max())
-# id3 = ID3_algorithm(df)
-
-# data = np.array([40000])
-# data = pd.cut(data, bins=[0, 35*365.25, 45*365.25, 65*365.25], labels=[0, 1, 2])
-# if math.isnan(data[0]):
-#     print('yes')
-
-# df = pd.read_csv('data/test.csv', sep=';')
-# df['x2'] = pd.cut(df['x2'], bins=[0, 1, 2], labels=[1, 2])
-# X = df.iloc[:, :-1]
-# Y = df.iloc[:, -1]
-# id3 = ID3_algorithm(df)
-# # print(id3.information_gain(X, Y, 'x1'))
-# # print(id3.information_gain(X, Y, 'x2'))
-
-
-# # def print_tree(node, depth=0):
-# #     if node.result is not None:
-# #         print("  " * depth, "Result:", node.result)
-# #     else:
-# #         print("  " * depth, "Feature:", node.feature)
-# #         for value, child in node.children.items():
-# #             print("  " * (depth+1), f"Value {value}:")
-# #             print_tree(child, depth + 2)
-
-# root = id3.fit(X, Y, 9)
-# predictions = id3.predict(X, root)
-# print(predictions)
-# print(id3.accuracy(Y.tolist(), predictions))
-# print_tree(root)
