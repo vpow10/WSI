@@ -49,7 +49,6 @@ def single_prediction(depth: int, show_values=False):
         print(f"Training accuracy: {train_accuracy}")
         print(f"Validation accuracy: {validation_accuracy}")
         print(f"Test accuracy: {test_accuracy}")
-        print(f"Classification report: {classification_report(Y_test.tolist(), test_predictions)}")
 
     return train_accuracy, validation_accuracy, test_accuracy
 
@@ -87,7 +86,7 @@ def full_test():
     X_test = data_test.drop('cardio', axis=1)
 
     # Finding the best depth for the model and testing that model
-    best_depth = test_depths(20)
+    best_depth = test_depths(10)
     model = ID3_algorithm(data_train)
     model.result = model.fit(X_train, Y_train, best_depth)
     model.predictions = model.predict(X_train, model.result)

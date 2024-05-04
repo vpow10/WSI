@@ -1,7 +1,5 @@
 import pandas as pd
-from sklearn.model_selection import train_test_split
 import numpy as np
-import math
 
 
 class Node:
@@ -36,6 +34,8 @@ class ID3_algorithm():
         pass
 
     def fit(self, X, Y, depth: int):
+        if depth < 0:
+            raise ValueError("Depth should be a non-negative integer")
         # Check for NaN values and replace them with the mean of the column
         for col in X.columns:
             if X[col].isnull().values.any():
