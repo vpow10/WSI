@@ -4,7 +4,6 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from solver import ID3_algorithm, Node
 from data_prep import discretize
-from sklearn.metrics import classification_report, accuracy_score
 
 
 def print_tree(node, depth=0):

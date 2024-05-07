@@ -31,7 +31,7 @@ class ID3_algorithm():
         return entropy_before - entropy_after
 
     def get_parameters(self):
-        pass
+        return self.data
 
     def fit(self, X, Y, depth: int):
         if depth < 0:
