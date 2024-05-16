@@ -24,9 +24,9 @@ class Solver:
         self.W1 = np.random.randn(self.input_size, self.hidden_sizes[0])
         self.W_hidden = [np.random.randn(self.hidden_sizes[i], self.hidden_sizes[i+1]) for i in range(self.hidden_number - 1)]
         self.W2 = np.random.randn(self.hidden_sizes[-1], self.output_size)
-        self.b1 = np.random.randn(self.hidden_sizes[0])
-        self.b_hidden = [np.random.randn(self.hidden_sizes[i]) for i in range( self.hidden_number - 1)]
-        self.b2 = np.random.randn(self.output_size)
+        self.b1 = np.zeros((1, self.hidden_sizes[0]))
+        self.b_hidden = [np.zeros((1, self.hidden_sizes[i])) for i in range(self.hidden_number - 1)]
+        self.b2 = np.zeros((1, self.output_size))
 
     def activation(self, x):
         if self.activation_function == 'sigmoid':
@@ -53,6 +53,10 @@ class Solver:
     def forward(self, X):
         self.z1 = np.dot(X, self.W1) + self.b1
         self.a1 = self.activation(self.z1)
+        if self.hidden_number == 1:
+            self.z2 = np.dot(self.a1, self.W2) + self.b2
+            self.a2 = self.activation(self.z2)
+            return self.a2
         self.z_hidden = [np.dot(self.a1, self.W_hidden[0]) + self.b_hidden[0]]
         self.a_hidden = [self.activation(self.z_hidden[0])]
         for i in range(1, self.hidden_number - 1):
@@ -63,31 +67,85 @@ class Solver:
         return self.a2
 
     def backward(self, X, y):
+        m = X.shape[0]
         self.loss_value = self.loss(y, self.a2)
-        self.a2_delta = y - self.a2
-        self.z2_delta = self.a2_delta * self.derivative(self.z2)
-        self.a_hidden_delta = [self.z2_delta.dot(self.W2.T)]
-        self.W2_delta = self.a_hidden[-1].T.dot(self.z2_delta)
-        self.b2_delta = np.sum(self.z2_delta, axis=0)
-        for i in range(self.hidden_number - 2, -1, -1):
-            self.z_hidden_delta = self.a_hidden_delta[-1] * self.derivative(self.z_hidden[i])
-            self.a_hidden_delta.append(self.z_hidden_delta.dot(self.W_hidden[0][i+1].T))
-            self.W_hidden_delta = self.a_hidden[i-1].T.dot(self.z_hidden_delta)
-            self.b_hidden_delta = np.sum(self.z_hidden_delta, axis=0)
-        self.z1_delta = self.a_hidden_delta[-1] * self.derivative(self.z1[:, 0])
-        self.W1_delta = X.T.dot(self.z1_delta)
-        self.b1_delta = np.sum(self.z1_delta, axis=0)
 
-        # Update weights and biases
 
-        self.W1 += self.W1_delta * self.learning_rate
-        self.W2 += self.W2_delta * self.learning_rate
-        for i in range(self.hidden_number - 1):
-            self.W_hidden[i] += self.W_hidden_delta * self.learning_rate
-        self.b1 += self.b1_delta * self.learning_rate
-        self.b2 += self.b2_delta * self.learning_rate
-        for i in range(self.hidden_number - 1):
-            self.b_hidden[i] += self.b_hidden_delta * self.learning_rate
+        if self.hidden_number == 1:
+            # Calculate gradients
+            dz2 = self.a2 - y
+            dW2 = np.dot(self.a1.T, dz2) / m
+            db2 = np.sum(dz2, axis=0, keepdims=True) / m
+            dz1 = np.dot(dz2, self.W2.T) * self.derivative(self.z1)
+            dW1 = np.dot(X.T, dz1) / m
+            db1 = np.sum(dz1, axis=0, keepdims=True) / m
+
+            # Update weights and biases
+            self.W1 -= self.learning_rate * dW1
+            self.W2 -= self.learning_rate * dW2
+            self.b1 -= self.learning_rate * db1
+            self.b2 -= self.learning_rate * db2
+        else:
+            # Calculate gradients
+            dz2 = self.a2 - y
+            dW2 = np.dot(self.a_hidden[-1].T, dz2) / m
+            db2 = np.sum(dz2, axis=0, keepdims=True) / m
+            dz_hidden = [np.dot(dz2, self.W2.T) * self.derivative(self.z_hidden[-1])]
+            dW_hidden = [np.dot(self.a_hidden[-1].T, dz_hidden[0]) / m]
+            db_hidden = [np.sum(dz_hidden[0], axis=0, keepdims=True) / m]
+            for i in range(self.hidden_number - 2, 0, -1):
+                dz_hidden.append(np.dot(dz_hidden[-1], self.W_hidden[i].T) * self.derivative(self.z_hidden[i-1]))
+                dW_hidden.append(np.dot(self.a_hidden[i-1].T, dz_hidden[-1]) / m)
+                db_hidden.append(np.sum(dz_hidden[-1], axis=0, keepdims=True) / m)
+            dz1 = np.dot(dz_hidden[-1], self.W_hidden[0].T) * self.derivative(self.z1)
+            dW1 = np.dot(X.T, dz1) / m
+            db1 = np.sum(dz1, axis=0, keepdims=True) / m
+
+            # Update weights and biases
+            self.W1 -= self.learning_rate * dW1
+            self.W2 -= self.learning_rate * dW2
+            for i in range(self.hidden_number - 1):
+                self.W_hidden[i] -= self.learning_rate * dW_hidden[i]
+                self.b_hidden[i] -= self.learning_rate * db_hidden[i]
+            self.b1 -= self.learning_rate * db1
+            self.b2 -= self.learning_rate * db2
+
+        # self.loss_value = self.loss(y, self.a2)
+        # self.a2_delta = y - self.a2
+        # self.z2_delta = self.a2_delta * self.derivative(self.z2)
+        # if self.hidden_number == 1:
+        #     self.W2_delta = self.a1.T.dot(self.z2_delta)
+        #     self.b2_delta = np.sum(self.z2_delta, axis=0)
+        #     self.z1_delta = self.z2_delta * self.derivative(self.z1)
+        #     self.W1_delta = X.T.dot(self.z1_delta)
+        #     self.b1_delta = np.sum(self.z1_delta, axis=0)
+        #     self.W1 += self.W1_delta * self.learning_rate
+        #     self.W2 += self.W2_delta * self.learning_rate
+        #     self.b1 += self.b1_delta * self.learning_rate
+        #     self.b2 += self.b2_delta * self.learning_rate
+        #     return
+        # self.a_hidden_delta = [self.z2_delta.dot(self.W2.T)]
+        # self.W2_delta = self.a_hidden[-1].T.dot(self.z2_delta)
+        # self.b2_delta = np.sum(self.z2_delta, axis=0)
+        # for i in range(self.hidden_number - 2, -1, -1):
+        #     self.z_hidden_delta = self.a_hidden_delta[-1] * self.derivative(self.z_hidden[i])
+        #     self.a_hidden_delta.append(self.z_hidden_delta.dot(self.W_hidden[0][i+1].T))
+        #     self.W_hidden_delta = self.a_hidden[i-1].T.dot(self.z_hidden_delta)
+        #     self.b_hidden_delta = np.sum(self.z_hidden_delta, axis=0)
+        # self.z1_delta = self.a_hidden_delta[-1] * self.derivative(self.z1[:, 0])
+        # self.W1_delta = X.T.dot(self.z1_delta)
+        # self.b1_delta = np.sum(self.z1_delta, axis=0)
+
+        # # Update weights and biases
+
+        # self.W1 += self.W1_delta * self.learning_rate
+        # self.W2 += self.W2_delta * self.learning_rate
+        # for i in range(self.hidden_number - 1):
+        #     self.W_hidden[i] += self.W_hidden_delta * self.learning_rate
+        # self.b1 += self.b1_delta * self.learning_rate
+        # self.b2 += self.b2_delta * self.learning_rate
+        # for i in range(self.hidden_number - 1):
+        #     self.b_hidden[i] += self.b_hidden_delta * self.learning_rate
 
     def train(self, X, y, epochs):
         for _ in range(epochs):
@@ -96,11 +154,11 @@ class Solver:
         print(self.loss_value)
 
     def predict(self, X):
-        return self.forward(X)
+        return np.round(self.forward(X), 3)
 
 X = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
 y = np.array([[0], [1], [1], [0]])
 
-solver = Solver(2, [2, 2], 1, 'sigmoid', 'mse', 0.1)
-solver.train(X, y, 1000)
+solver = Solver(2, [3, 3], 1, 'sigmoid', 'mse', 0.1)
+solver.train(X, y, 50000)
 print(solver.predict(X))
