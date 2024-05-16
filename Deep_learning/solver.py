@@ -1,10 +1,10 @@
 import numpy as np
+from sklearn.metrics import accuracy_score
 from typing import List
 
 
 class Solver:
-    def __init__(
-            self, input_size: int, hidden_sizes: List[int] , output_size: int,
+    def __init__(self, input_size: int, hidden_sizes: List[int] , output_size: int,
             activation_function: str, loss_function: str, learning_rate: float):
         """
         Hidden sizes is a list of integers, each representing the number of neurons in a hidden layer
@@ -13,20 +13,16 @@ class Solver:
         """
         self.input_size = input_size
         self.hidden_sizes = hidden_sizes
-        self.hidden_number = len(hidden_sizes)
         self.output_size = output_size
         self.activation_function = activation_function
         self.loss_function = loss_function
         self.learning_rate = learning_rate
-
-        # Initialize weights and biases
-
-        self.W1 = np.random.randn(self.input_size, self.hidden_sizes[0])
-        self.W_hidden = [np.random.randn(self.hidden_sizes[i], self.hidden_sizes[i+1]) for i in range(self.hidden_number - 1)]
-        self.W2 = np.random.randn(self.hidden_sizes[-1], self.output_size)
-        self.b1 = np.zeros((1, self.hidden_sizes[0]))
-        self.b_hidden = [np.zeros((1, self.hidden_sizes[i])) for i in range(self.hidden_number - 1)]
-        self.b2 = np.zeros((1, self.output_size))
+        self.weights = []
+        self.biases = []
+        layer_sizes = [input_size] + hidden_sizes + [output_size]
+        for i in range(len(layer_sizes) - 1):
+            self.weights.append(np.random.randn(layer_sizes[i], layer_sizes[i+1]) / np.sqrt(layer_sizes[i])) # initializing with smaller weights
+            self.biases.append(np.random.randn(layer_sizes[i+1]))
 
     def activation(self, x):
         if self.activation_function == 'sigmoid':
@@ -51,114 +47,42 @@ class Solver:
             return -np.sum(y_true * np.log(y_pred) + (1 - y_true) * np.log(1 - y_pred))
 
     def forward(self, X):
-        self.z1 = np.dot(X, self.W1) + self.b1
-        self.a1 = self.activation(self.z1)
-        if self.hidden_number == 1:
-            self.z2 = np.dot(self.a1, self.W2) + self.b2
-            self.a2 = self.activation(self.z2)
-            return self.a2
-        self.z_hidden = [np.dot(self.a1, self.W_hidden[0]) + self.b_hidden[0]]
-        self.a_hidden = [self.activation(self.z_hidden[0])]
-        for i in range(1, self.hidden_number - 1):
-            self.z_hidden.append(np.dot(self.a_hidden[i-1], self.W_hidden[i]) + self.b_hidden[i])
-            self.a_hidden.append(self.activation(self.z_hidden[i]))
-        self.z2 = np.dot(self.a_hidden[-1], self.W2) + self.b2
-        self.a2 = self.activation(self.z2)
-        return self.a2
-
-    def backward(self, X, y):
-        m = X.shape[0]
-        self.loss_value = self.loss(y, self.a2)
-
-
-        if self.hidden_number == 1:
-            # Calculate gradients
-            dz2 = self.a2 - y
-            dW2 = np.dot(self.a1.T, dz2) / m
-            db2 = np.sum(dz2, axis=0, keepdims=True) / m
-            dz1 = np.dot(dz2, self.W2.T) * self.derivative(self.z1)
-            dW1 = np.dot(X.T, dz1) / m
-            db1 = np.sum(dz1, axis=0, keepdims=True) / m
-
-            # Update weights and biases
-            self.W1 -= self.learning_rate * dW1
-            self.W2 -= self.learning_rate * dW2
-            self.b1 -= self.learning_rate * db1
-            self.b2 -= self.learning_rate * db2
-        else:
-            # Calculate gradients
-            dz2 = self.a2 - y
-            dW2 = np.dot(self.a_hidden[-1].T, dz2) / m
-            db2 = np.sum(dz2, axis=0, keepdims=True) / m
-            dz_hidden = [np.dot(dz2, self.W2.T) * self.derivative(self.z_hidden[-1])]
-            dW_hidden = [np.dot(self.a_hidden[-1].T, dz_hidden[0]) / m]
-            db_hidden = [np.sum(dz_hidden[0], axis=0, keepdims=True) / m]
-            for i in range(self.hidden_number - 2, 0, -1):
-                dz_hidden.append(np.dot(dz_hidden[-1], self.W_hidden[i].T) * self.derivative(self.z_hidden[i-1]))
-                dW_hidden.append(np.dot(self.a_hidden[i-1].T, dz_hidden[-1]) / m)
-                db_hidden.append(np.sum(dz_hidden[-1], axis=0, keepdims=True) / m)
-            dz1 = np.dot(dz_hidden[-1], self.W_hidden[0].T) * self.derivative(self.z1)
-            dW1 = np.dot(X.T, dz1) / m
-            db1 = np.sum(dz1, axis=0, keepdims=True) / m
-
-            # Update weights and biases
-            self.W1 -= self.learning_rate * dW1
-            self.W2 -= self.learning_rate * dW2
-            for i in range(self.hidden_number - 1):
-                self.W_hidden[i] -= self.learning_rate * dW_hidden[i]
-                self.b_hidden[i] -= self.learning_rate * db_hidden[i]
-            self.b1 -= self.learning_rate * db1
-            self.b2 -= self.learning_rate * db2
-
-        # self.loss_value = self.loss(y, self.a2)
-        # self.a2_delta = y - self.a2
-        # self.z2_delta = self.a2_delta * self.derivative(self.z2)
-        # if self.hidden_number == 1:
-        #     self.W2_delta = self.a1.T.dot(self.z2_delta)
-        #     self.b2_delta = np.sum(self.z2_delta, axis=0)
-        #     self.z1_delta = self.z2_delta * self.derivative(self.z1)
-        #     self.W1_delta = X.T.dot(self.z1_delta)
-        #     self.b1_delta = np.sum(self.z1_delta, axis=0)
-        #     self.W1 += self.W1_delta * self.learning_rate
-        #     self.W2 += self.W2_delta * self.learning_rate
-        #     self.b1 += self.b1_delta * self.learning_rate
-        #     self.b2 += self.b2_delta * self.learning_rate
-        #     return
-        # self.a_hidden_delta = [self.z2_delta.dot(self.W2.T)]
-        # self.W2_delta = self.a_hidden[-1].T.dot(self.z2_delta)
-        # self.b2_delta = np.sum(self.z2_delta, axis=0)
-        # for i in range(self.hidden_number - 2, -1, -1):
-        #     self.z_hidden_delta = self.a_hidden_delta[-1] * self.derivative(self.z_hidden[i])
-        #     self.a_hidden_delta.append(self.z_hidden_delta.dot(self.W_hidden[0][i+1].T))
-        #     self.W_hidden_delta = self.a_hidden[i-1].T.dot(self.z_hidden_delta)
-        #     self.b_hidden_delta = np.sum(self.z_hidden_delta, axis=0)
-        # self.z1_delta = self.a_hidden_delta[-1] * self.derivative(self.z1[:, 0])
-        # self.W1_delta = X.T.dot(self.z1_delta)
-        # self.b1_delta = np.sum(self.z1_delta, axis=0)
-
-        # # Update weights and biases
-
-        # self.W1 += self.W1_delta * self.learning_rate
-        # self.W2 += self.W2_delta * self.learning_rate
-        # for i in range(self.hidden_number - 1):
-        #     self.W_hidden[i] += self.W_hidden_delta * self.learning_rate
-        # self.b1 += self.b1_delta * self.learning_rate
-        # self.b2 += self.b2_delta * self.learning_rate
-        # for i in range(self.hidden_number - 1):
-        #     self.b_hidden[i] += self.b_hidden_delta * self.learning_rate
-
-    def train(self, X, y, epochs):
-        for _ in range(epochs):
-            self.forward(X)
-            self.backward(X, y)
-        print(self.loss_value)
+        activations = [X]
+        for i in range(len(self.weights)):
+            z = np.dot(activations[-1], self.weights[i]) + self.biases[i]
+            activation = self.activation(z)
+            activations.append(activation)
+        return activations
 
     def predict(self, X):
-        return np.round(self.forward(X), 3)
+        activations = self.forward(X)
+        if self.output_size > 1:
+            return np.argmax(activations[-1], axis=1)
+        else:
+            return np.round(activations[-1]).astype(int)
 
-X = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
-y = np.array([[0], [1], [1], [0]])
+    def backward(self, X, y):
+        activations = self.forward(X)
+        output_activation = activations[-1]
+        if self.output_size > 1:
+            error = output_activation - np.eye(self.output_size)[y]
+        else:
+            error = output_activation - y.reshape(-1, 1)
+        for i in range(len(self.weights) - 1, -1, -1):
+            if i == len(self.weights) - 1:
+                delta = error * self.derivative(output_activation)
+            else:
+                delta = np.dot(delta, self.weights[i+1].T) * self.derivative(activations[i+1])
+            gradient_weights = np.dot(activations[i].T, delta) / len(X)
+            gradient_biases = np.mean(delta, axis=0)
+            self.weights[i] -= self.learning_rate * gradient_weights
+            self.biases[i] -= self.learning_rate * gradient_biases
 
-solver = Solver(2, [3, 3], 1, 'sigmoid', 'mse', 0.1)
-solver.train(X, y, 50000)
-print(solver.predict(X))
+    def train(self, X, y, epochs):
+        for epoch in range(epochs):
+            self.backward(X, y)
+            if epoch % 100 == 0:
+                predictions = self.predict(X)
+                loss = self.loss(y, predictions)
+                accuracy = accuracy_score(y, predictions)
+                print(f"Epoch {epoch}, Accuracy: {accuracy}, Loss: {loss}")
