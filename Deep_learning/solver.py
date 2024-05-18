@@ -79,10 +79,11 @@ class Solver:
             self.biases[i] -= self.learning_rate * gradient_biases
 
     def train(self, X, y, epochs):
-        for epoch in range(epochs):
+        for epoch in range(epochs+1):
             self.backward(X, y)
             if epoch % 100 == 0:
                 predictions = self.predict(X)
                 loss = self.loss(y, predictions)
                 accuracy = accuracy_score(y, predictions)
                 print(f"Epoch {epoch}, Accuracy: {accuracy}, Loss: {loss}")
+        return loss
