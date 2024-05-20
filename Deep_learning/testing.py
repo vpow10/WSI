@@ -10,7 +10,7 @@ def test_XOR():
     y = np.array([[0], [1], [1], [0]])
 
     solver = Solver(2, [3], 1, 'sigmoid', 'mse', 1)
-    solver.train(X, y, 40000)
+    solver.train(X, y, 20000)
     print(solver.predict(X))
 
 
@@ -83,7 +83,7 @@ def test_hidden_size_impact():
     output_size = 10
     sizes = [[3], [3, 3], [10, 10], [30, 60], [128, 64], [30, 30, 30]]
     epochs = 1000
-    lr = 0.1
+    lr = 2
     accuracies = []
     losses = []
     for hidden_size in sizes:

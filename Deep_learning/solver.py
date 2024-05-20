@@ -11,6 +11,14 @@ class Solver:
         Possible activation functions: 'sigmoid', 'tanh', 'relu'
         Possible loss functions: 'mse', 'cross_entropy'
         """
+        if input_size <= 0 or output_size <= 0 or learning_rate <= 0:
+            raise ValueError("Input size, output size and learning rate must be positive integers")
+        if activation_function not in ['sigmoid', 'tanh', 'relu']:
+            raise ValueError("Activation function must be 'sigmoid', 'tanh' or 'relu'")
+        if loss_function not in ['mse', 'cross_entropy']:
+            raise ValueError("Loss function must be 'mse' or 'cross_entropy'")
+        if not all([size > 0 for size in hidden_sizes]):
+            raise ValueError("Hidden sizes must be positive integers")
         self.input_size = input_size
         self.hidden_sizes = hidden_sizes
         self.output_size = output_size
@@ -21,7 +29,7 @@ class Solver:
         self.biases = []
         layer_sizes = [input_size] + hidden_sizes + [output_size]
         for i in range(len(layer_sizes) - 1):
-            self.weights.append(np.random.randn(layer_sizes[i], layer_sizes[i+1]) / np.sqrt(layer_sizes[i])) # initializing with smaller weights
+            self.weights.append(np.random.randn(layer_sizes[i], layer_sizes[i+1]) / np.sqrt(layer_sizes[i]))
             self.biases.append(np.random.randn(layer_sizes[i+1]))
 
     def activation(self, x):
