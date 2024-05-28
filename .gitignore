@@ -9,3 +9,5 @@ Minimax/__pycache__/heuristic_DnB.cpython-310.pyc
 Minimax/__pycache__/minimax.cpython-310.pyc
 Minimax/__pycache__/test.cpython-310.pyc
 ID3_algorithm/data/.~lock.CardiovascularDiseaseDetection.docx#
+ID3_algorithm/__pycache__/data_prep.cpython-310.pyc
+ID3_algorithm/__pycache__/solver.cpython-310.pyc
