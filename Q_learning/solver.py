@@ -48,6 +48,14 @@ class solver():
             self, reset_function: callable, action_info: callable, max_steps=100):
         state = reset_function()[0]
         rewards = 0
+        i = 1
+        if i == 1:
+            wait = True
+            while wait:
+                print("Press 'y' to start playing")
+                if input() == 'y':
+                    i = 0
+                    wait = False
         for _ in range(max_steps):
             action = np.argmax(self.q_table[state, :])
             state, reward, done, _, _ = action_info(action)

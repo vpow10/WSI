@@ -4,34 +4,6 @@ import numpy as np
 import gym
 
 
-def single_run():
-    env = gym.make('Taxi-v3')
-    env.reset()
-    state_size = env.observation_space.n
-    action_size = env.action_space.n
-    s = solver(state_size, action_size)
-    rewards, steps = s.q_learning(
-        action_info=env.step, reset_func=env.reset, learning_rate=0.9,
-        discount_rate=1, epsilon=1.0, decay=0.005, episodes=1000, max_steps=100
-    )
-    plt.figure(1)
-    episodes = np.arange(0, len(rewards))
-    plt.scatter(episodes, rewards, linewidths=0.1, edgecolors='black')
-    plt.xlabel('Episodes')
-    plt.ylabel('Rewards')
-    plt.title('Q-learning rewards')
-    plt.figure(2)
-    plt.scatter(episodes, steps, linewidths=0.1, edgecolors='black')
-    plt.xlabel('Episodes')
-    plt.ylabel('Steps')
-    plt.title('Q-learning steps')
-    plt.show()
-    env.close()
-    env2 = gym.make('Taxi-v3', render_mode='human')
-    s.play(
-        reset_function=env2.reset, action_info=env2.step, max_steps=100
-    )
-
 def test_learning_rate():
     env = gym.make('Taxi-v3')
     env.reset()
@@ -118,6 +90,35 @@ def test_episode():
     plt.title('Q-learning steps')
     plt.show()
     env.close()
+
+def single_run():
+    env = gym.make('Taxi-v3')
+    env.reset()
+    state_size = env.observation_space.n
+    action_size = env.action_space.n
+    s = solver(state_size, action_size)
+    rewards, steps = s.q_learning(
+        action_info=env.step, reset_func=env.reset, learning_rate=0.9,
+        discount_rate=1, epsilon=1.0, decay=0.005, episodes=1000, max_steps=100
+    )
+    plt.figure(1)
+    episodes = np.arange(0, len(rewards))
+    plt.scatter(episodes, rewards, linewidths=0.1, edgecolors='black')
+    plt.xlabel('Episodes')
+    plt.ylabel('Rewards')
+    plt.title('Q-learning rewards')
+    plt.figure(2)
+    plt.scatter(episodes, steps, linewidths=0.1, edgecolors='black')
+    plt.xlabel('Episodes')
+    plt.ylabel('Steps')
+    plt.title('Q-learning steps')
+    plt.show()
+    env.close()
+    env2 = gym.make('Taxi-v3', render_mode='human')
+    s.play(
+        reset_function=env2.reset, action_info=env2.step, max_steps=100
+    )
+
 
 if __name__=="__main__":
     test_learning_rate()
