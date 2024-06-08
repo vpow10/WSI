@@ -1,6 +1,4 @@
 import numpy as np
-from sklearn.naive_bayes import GaussianNB
-from sklearn.metrics import accuracy_score
 from sklearn.base import BaseEstimator, ClassifierMixin
 
 
@@ -16,7 +14,7 @@ class Solver(BaseEstimator, ClassifierMixin):
         class_prob = counts / y.shape[0]
         self.class_priors = dict(zip(classes, class_prob))
         self.classes = classes
-        self.classes_ = classes  # Added for scikit-learn compatibility
+        self.classes_ = classes  # for sklearn compatibility
 
     def calculate_condition_prob(self, X, y):
         self.feature_stats = {}
